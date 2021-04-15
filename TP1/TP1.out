@@ -1,0 +1,329 @@
+SQL> START TP1.sql
+SQL> 
+SQL> 
+SQL> --*************************************************************
+SQL> -- 							   *
+SQL> --      auteur:	     CHAOUKI Mohamed			   *
+SQL> --      code permanent: CHAM27088802			   *
+SQL> --      courriel:	     chaouki.mohamed@courrier.uqam.ca	   *
+SQL> -- 							   *
+SQL> --     auteur:	    Christian Koy Okitapoy		   *
+SQL> --      code permanent: OKIK08078702			   *
+SQL> --      courriel:	     okitapoy@gmail.com 		   *
+SQL> -- 							   *
+SQL> -- 							   *
+SQL> --*************************************************************
+SQL> 
+SQL> --Req#1.
+SQL> --Donnez les informations sans répétition des sigles, titres des cours pris par l’étudiant Lavoie Paul ainsi que les noms des professeurs qui donnent ces cours.
+SQL> 
+SQL> select distinct Cours.sigle,titre,Professeur.nom,Professeur.prenom
+  2  from Etudiant,Inscription,GroupeCours,Professeur,Cours
+  3  where Etudiant.nom = 'Lavoie' AND
+  4  Etudiant.prenom = 'Paul' AND
+  5  Etudiant.codePermanent = Inscription.codePermanent AND
+  6  Inscription.sigle = groupeCours.sigle AND
+  7  cours.Sigle = GroupeCours.sigle AND
+  8  Inscription.noGroupe = GroupeCours.noGroupe AND
+  9  GroupeCours.codeProfesseur = Professeur.codeProfesseur
+ 10  /
+
+SIGLE   TITRE                                              NOM        PRENOM    
+------- -------------------------------------------------- ---------- ----------
+INF1110 Programmation I                                    Tremblay   Jean      
+
+SQL> 
+SQL> --REQ#2.
+SQL> --On cherche les code et noms des professeurs, sans répétition, qui ont enseigné à la fois les cours
+SQL> --INF3180 et INF2110, durant la session dont le code est 12004. Aussi, les code et noms des
+SQL> --professeurs, sans répétition, qui ont enseigné les cours INF1130 ou INF1110, durant la session dont le code est 32003
+SQL> 
+SQL> select distinct Professeur.codeProfesseur,nom
+  2  from GroupeCours,Professeur
+  3  where(professeur.codeProfesseur = GroupeCours.codeProfesseur AND
+  4  sigle = 'INF3180' AND sigle = 'INF2110' AND codeSession = '12004') AND
+  5  (Professeur.codeProfesseur = GroupeCours.codeProfesseur AND
+  6  sigle = 'INF1130' OR sigle = 'INF1110' AND codeSession = '32003')
+  7  /
+
+no rows selected
+
+SQL> 
+SQL> --REQ#3.
+SQL> --On cherche les informations sur différents étudiants qui ont reçu la même note pour le même cours
+SQL> --(sigle) à la même session (codesession). Le résultat doit être affiché avec les attributs suivants (codepermanent 1, code permanent 2, sigle, codesession, note).
+SQL> 
+SQL> SELECT Inscription.codePermanent,Inscription2.codePermanent,Inscription.sigle,Inscription.codeSession,Inscription.note
+  2  FROM Inscription,Inscription Inscription2
+  3  WHERE Inscription.codePermanent != Inscription2.codePermanent AND
+  4  Inscription.codeSession = Inscription2.codeSession AND
+  5  Inscription.sigle = Inscription2.sigle AND
+  6  Inscription.note = Inscription2.note
+  7  /
+
+CODEPERMANEN CODEPERMANEN SIGLE   CODESESSION       NOTE                        
+------------ ------------ ------- ----------- ----------                        
+MARA25087501 TREJ18088001 INF1110       32003         80                        
+LAVP08087001 TREJ18088001 INF1110       32003         80                        
+MARA25087501 LAVP08087001 INF1110       32003         80                        
+TREJ18088001 LAVP08087001 INF1110       32003         80                        
+LAVP08087001 MARA25087501 INF1110       32003         80                        
+TREJ18088001 MARA25087501 INF1110       32003         80                        
+MARA25087501 TREL14027801 INF2110       12004         90                        
+TREL14027801 MARA25087501 INF2110       12004         90                        
+DUGR08085001 EMEK10106501 INF5180       12004         80                        
+EMEK10106501 DUGR08085001 INF5180       12004         80                        
+
+10 rows selected.
+
+SQL> 
+SQL> --REQ#4.
+SQL> --On cherche les codes permanents, noms et prénoms des étudiants inscrits aux cours dont les sigles
+SQL> --commencent par les lettres ‘InF’, enseignés par le professeur dont le nom est 'De Vinci' des
+SQL> --sessions 32003 ou 12004. Ces étudiants sont considérés n’avoir pas abandonné le cours durant cette session.
+SQL> 
+SQL> SELECT Etudiant.codePermanent,Etudiant.nom,Etudiant.prenom
+  2  FROM Etudiant,Inscription,GroupeCours,Professeur
+  3  WHERE Etudiant.codePermanent = Inscription.codePermanent AND
+  4  Inscription.sigle LIKE 'InF%' AND
+  5  Inscription.Sigle = GroupeCours.sigle AND
+  6  Inscription.codeSession = GroupeCours.codeSession AND
+  7  (Inscription.codeSession = 32003 OR Inscription.codeSession = 12004 ) AND
+  8  GroupeCours.codeProfesseur = Professeur.codeProfesseur AND
+  9  Professeur.nom = 'De Vinci' AND
+ 10  dateAbandon = ''
+ 11  /
+
+no rows selected
+
+SQL> 
+SQL> 
+SQL> --REQ#5.
+SQL> --On cherche les codes et les noms des professeurs, sans répétition, qui ont enseigné au plus un cours offert à la session 32003 ou au moins un cours offert aux deux sessions (toutes les deux) dont les codes sont 12004 et 22005.
+SQL> 
+SQL> SELECT DISTINCT GroupeCours.codeprofesseur, Professeur.nom
+  2  FROM      professeur , groupecours
+  3  WHERE     Professeur.codeprofesseur = GroupeCours.codeprofesseur AND
+  4  	       GroupeCours.codesession = '32003' OR (GroupeCours.codesession = '12004' AND
+  5  GroupeCours.codesession = '22005')
+  6  GROUP BY  GroupeCours.codeprofesseur, Professeur.nom
+  7  HAVING count(*) = 1
+  8  /
+
+CODEP NOM                                                                       
+----- ----------                                                                
+GALE9 Galois                                                                    
+
+SQL> 
+SQL> --REQ#6.
+SQL> --Lister les codes permanents et les noms des étudiants dont le nom commence par la lettre ‘T‘ et
+SQL> --contient au moins la lettre ‘a’ quelque soit sa position.
+SQL> 
+SQL> SELECT codePermanent, nom
+  2  FROM Etudiant
+  3  WHERE nom LIKE 'T%a%'
+  4  /
+
+CODEPERMANEN NOM                                                                
+------------ ----------                                                         
+TREJ18088001 Tremblay                                                           
+TREL14027801 Tremblay                                                           
+TREY09087501 Tremblay                                                           
+
+SQL> 
+SQL> 
+SQL> --REQ#7.
+SQL> --Retourner les sigles des cours non encore enseignés par le professeur dont le nom est
+SQL> --'Galois','Evariste'.
+SQL> 
+SQL> 
+SQL> SELECT DISTINCT sigle
+  2  FROM GroupeCours,Professeur
+  3  WHERE GroupeCours.codeProfesseur = Professeur.codeProfesseur AND
+  4  nom NOT LIKE 'Galois' AND prenom NOT LIKE 'Evariste' AND
+  5  sigle NOT IN (SELECT sigle
+  6  FROM GroupeCours,Professeur
+  7  WHERE GroupeCours.codeProfesseur = Professeur.codeProfesseur AND
+  8  nom LIKE 'Galois' AND prenom LIKE 'Evariste')
+  9  /
+
+SIGLE                                                                           
+-------                                                                         
+INF1110                                                                         
+INF3123                                                                         
+INF2110                                                                         
+INF3180                                                                         
+
+SQL> 
+SQL> --REQ#8.
+SQL> --Afficher la différence entre la moyenne des notes des cours donnés durant la session dont le code
+SQL> --est 32203 et ceux de la session dont le code est 12204.
+SQL> 
+SQL> -- PS : la requete marche avec les bon codeSession le resulat est -5.41... mais dans la question les
+SQL> -- codes de session ne sont pas les bons alors il n y  a rien qui s'affiche
+SQL> 
+SQL> SELECT DISTINCT
+  2  (SELECT AVG(note) FROM Inscription WHERE codeSession = 32203)
+  3  -
+  4  (SELECT AVG(note)	FROM Inscription WHERE codeSession = 12204)
+  5  FROM Inscription
+  6  /
+
+(SELECTAVG(NOTE)FROMINSCRIPTIONWHERECODESESSION=32203)-(SELECTAVG(NOTE)FROMINSCR
+--------------------------------------------------------------------------------
+                                                                                
+
+SQL> 
+SQL> 
+SQL> --REQ#9.
+SQL> --Pour chaque code session et sigle d’un cours, retourner le sigle du cours et son titre et la différence entre la meilleure et la plus mauvaise note pour un cours donné.
+SQL> 
+SQL> SELECT titre,Inscription.sigle, MAX(note) - MIN(note)
+  2  FROM Inscription,GroupeCours,Cours
+  3  WHERE Inscription.codeSession = GroupeCours.codeSession AND
+  4  Inscription.sigle = GroupeCours.sigle AND Inscription.sigle = Cours.sigle
+  5  GROUP BY Inscription.sigle,titre
+  6  /
+
+TITRE                                              SIGLE   MAX(NOTE)-MIN(NOTE)  
+-------------------------------------------------- ------- -------------------  
+Mathematiques pour informaticien                   INF1130                  20  
+Fichiers et bases de donnees                       INF3180                  30  
+Conception et exploitation d'une base de donnees   INF5180                  10  
+Programmation I                                    INF1110                  20  
+Programmation II                                   INF2110                  20  
+
+SQL> 
+SQL> 
+SQL> --REQ#10.
+SQL> --Pour tous les cours qui ont une moyenne des notes supérieure ou égale à 80 pour la session
+SQL> --dont le code est 32003, mettre à jour la colonne dateFin de la table SessionUQAM en la mettant
+SQL> --au 22 décembre 2003.
+SQL> 
+SQL> 
+SQL> UPDATE SessionUQAM
+  2  SET dateFin = '22/12/2003'
+  3  WHERE codesession = '32003' AND EXISTS (
+  4  SELECT    i.sigle, AVG(i.note) AS MOYENNE
+  5  FROM      inscription i
+  6  WHERE     i.codesession = '32003'
+  7  GROUP BY  i.sigle
+  8  HAVING    AVG(i.note) >= 80
+  9  )
+ 10  /
+
+1 row updated.
+
+SQL> 
+SQL> 
+SQL> --Req 11
+SQL> --Supprimer les colonnes dateAbandon et maxInscriptions de(s) la table(s) concernée(s). Afficher
+SQL> --le(s) contenu(s) de(s) la table(s) concernée(s).
+SQL> 
+SQL> Alter table Inscription drop column dateAbandon
+  2  /
+
+Table altered.
+
+SQL> 
+SQL> Select * from Inscription
+  2  /
+
+CODEPERMANEN SIGLE     NOGROUPE CODESESSION DATEINSCRI       NOTE               
+------------ ------- ---------- ----------- ---------- ----------               
+TREJ18088001 INF1110         20       32003 16/08/2003         80               
+LAVP08087001 INF1110         20       32003 16/08/2003         80               
+TREL14027801 INF1110         30       32003 17/08/2003         90               
+MARA25087501 INF1110         20       32003 20/08/2003         80               
+STEG03106901 INF1110         20       32003 17/08/2003         70               
+TREJ18088001 INF1130         10       32003 16/08/2003         70               
+TREL14027801 INF1130         30       32003 17/08/2003         80               
+MARA25087501 INF1130         10       32003 22/08/2003         90               
+DEGE10027801 INF3180         30       32003 16/08/2003         90               
+MONC05127201 INF3180         30       32003 19/08/2003         60               
+VANV05127201 INF3180         30       32003 16/08/2003                          
+
+CODEPERMANEN SIGLE     NOGROUPE CODESESSION DATEINSCRI       NOTE               
+------------ ------- ---------- ----------- ---------- ----------               
+EMEK10106501 INF3180         40       32003 19/08/2003         80               
+DUGR08085001 INF3180         40       32003 19/08/2003         70               
+TREJ18088001 INF2110         10       12004 19/12/2003         80               
+TREL14027801 INF2110         10       12004 20/12/2003         90               
+MARA25087501 INF2110         40       12004 19/12/2003         90               
+STEG03106901 INF2110         40       12004 10/12/2003         70               
+VANV05127201 INF3180         10       12004 18/12/2003         90               
+DEGE10027801 INF5180         10       12004 15/12/2003         90               
+MONC05127201 INF5180         10       12004 19/12/2003                          
+EMEK10106501 INF5180         40       12004 19/12/2003         80               
+DUGR08085001 INF5180         10       12004 19/12/2003         80               
+
+22 rows selected.
+
+SQL> 
+SQL> Alter table GroupeCours drop column maxInscriptions
+  2  /
+
+Table altered.
+
+SQL> Select * from GroupeCours
+  2  /
+
+SIGLE     NOGROUPE CODESESSION CODEP                                            
+------- ---------- ----------- -----                                            
+INF1110         20       32003 TREJ4                                            
+INF1110         30       32003 PASB1                                            
+INF1130         10       32003 PASB1                                            
+INF1130         30       32003 GALE9                                            
+INF2110         10       32003 TREJ4                                            
+INF3123         20       32003 GOLA1                                            
+INF3123         30       32003 GOLA1                                            
+INF3180         30       32003 DEVL2                                            
+INF3180         40       32003 DEVL2                                            
+INF5180         10       32003 KNUD1                                            
+INF5180         40       32003 KNUD1                                            
+
+SIGLE     NOGROUPE CODESESSION CODEP                                            
+------- ---------- ----------- -----                                            
+INF1110         20       12004 TREJ4                                            
+INF1110         30       12004 TREJ4                                            
+INF2110         10       12004 PASB1                                            
+INF2110         40       12004 PASB1                                            
+INF3123         20       12004 GOLA1                                            
+INF3123         30       12004 GOLA1                                            
+INF3180         10       12004 DEVL2                                            
+INF3180         30       12004 DEVL2                                            
+INF5180         10       12004 DEVL2                                            
+INF5180         40       12004 GALE9                                            
+
+21 rows selected.
+
+SQL> 
+SQL> --Req 12
+SQL> --Supprimer tous les étudiants de la base de données à l’exception des étudiants dont le nom
+SQL> --commence par la lettre ‘T’. Afficher le(s) contenu(s) de(s) la table(s) concernée(s).
+SQL> 
+SQL> Delete from Inscription where codePermanent not like 'T%'
+  2  /
+
+16 rows deleted.
+
+SQL> 
+SQL> Delete from Etudiant where nom not like 'T%'
+  2  /
+
+8 rows deleted.
+
+SQL> 
+SQL> Select * from Etudiant
+  2  /
+
+CODEPERMANEN NOM        PRENOM     CODEPROGRAMME                                
+------------ ---------- ---------- -------------                                
+TREJ18088001 Tremblay   Jean                7416                                
+TREL14027801 Tremblay   Lucie               7416                                
+TREY09087501 Tremblay   Yvon                7316                                
+
+SQL> 
+SQL> 
+SQL> 
+SQL> SPOOL OFF
